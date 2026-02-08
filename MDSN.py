@@ -158,10 +158,7 @@ class UnifiedAttention(nn.Module):
         return self.ode_func(A.unsqueeze(1)).squeeze(1)
 
     def forward(self, x, mode='low_fre'):
-        """
-        x: [B, N, C]
-        mode: 'high_fre' 或 'low_fre'
-        """
+
         B, N, C = x.shape
 
         qkv = self.qkv_proj(x).view(B, N, 3, C).permute(2, 0, 1, 3)
@@ -194,7 +191,7 @@ class UnifiedAttention(nn.Module):
             out = rearrange(out, 'b h n d -> b n (h d)')
             return self.to_out(out)
 
-        else:  # 'low_fre'
+        else:  
 
             mu_q = q.mean(dim=2, keepdim=True)
             mu_k = k.mean(dim=2, keepdim=True)
@@ -229,7 +226,7 @@ class GlobalLocalAttentionBlock(nn.Module):
 
     def forward(self, x, H, W ,mode='low_fre'):
 
-        if mode == 'high_fre':    #########high_fre
+        if mode == 'high_fre':    
             global_out = self.attention1(x, mode='high_fre')
         
         elif mode == 'low_fre':
@@ -271,12 +268,11 @@ class Down_wt1(nn.Module):
     def __init__(self, in_ch, out_ch, initial_enhancement=1.5):
         super(Down_wt1, self).__init__()
 
-        # 将增强因子设为可学习参数
+ 
         self.enhancement_factor = nn.Parameter(
             torch.tensor(initial_enhancement, dtype=torch.float32)
         )
 
-        # 定义离散小波变换（DWT）模块
         self.wt = DWTForward(J=1, mode='zero', wave='haar')
 
         self.conv_bn_relu1 = nn.Sequential(
@@ -459,7 +455,6 @@ class PyramidVisionTransformer(nn.Module):
         return x
 
 
-# PEG  from https://arxiv.org/abs/2102.10882
 class PosCNN(nn.Module):
     def __init__(self, in_chans, embed_dim, i,  s=1):
         super(PosCNN, self).__init__()
@@ -472,7 +467,7 @@ class PosCNN(nn.Module):
 
     def forward(self, x, H, W):
         B, N, C = x.shape
-        feat_token = x    #将x给特征标记
+        feat_token = x   
         # feat_token_y = y
         cnn_feat = feat_token.transpose(1, 2).view(B, C, H, W)    #torch.Size([1, 128, 4096])    [torch.Size([1, 128, 64, 64])]
         if self.s == 1: 
@@ -570,7 +565,6 @@ class CPVTV2(PyramidVisionTransformer):
             mode_x = 'low_fre'
             mode_y = 'high_fre'
 
-            # Transformer 块
             for j, blk in enumerate(self.blocks[i]):
                 x = blk(x, H, W, mode=mode_x)
                 y = blk(y, H, W, mode=mode_y)
@@ -608,15 +602,13 @@ class PCPVT(CPVTV2):
                                     norm_layer, depths, sr_ratios, block_cls)
 
 
-class FSGformer(PCPVT):
-    """
-    alias Twins-SVT
-    """
+class MDSN(PCPVT):
+
     def __init__(self, img_size=224, patch_size=4, in_chans=3, num_classes=1000, embed_dims=[64, 128, 256],
                  num_heads=[1, 2, 4], mlp_ratios=[4, 4, 4], qkv_bias=False, qk_scale=None, drop_rate=0.,
                  attn_drop_rate=0., drop_path_rate=0., norm_layer=nn.LayerNorm,
                  depths=[4, 4, 4], sr_ratios=[4, 2, 1], block_cls=Block):
-        super(FSGformer, self).__init__(img_size, patch_size, in_chans, num_classes, embed_dims, num_heads,
+        super(MDSN, self).__init__(img_size, patch_size, in_chans, num_classes, embed_dims, num_heads,
                                      mlp_ratios, qkv_bias, qk_scale, drop_rate, attn_drop_rate, drop_path_rate,
                                      norm_layer, depths, sr_ratios, block_cls)
         del self.blocks
