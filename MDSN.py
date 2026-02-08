@@ -52,30 +52,30 @@ class Regression(nn.Module):
 
     def forward(self, x1, x2, x3):
 
-        x3_256 = self.c256(x3)                          # [B,256,H3,W3]
+        x3_256 = self.c256(x3)                      
 
         x3up = F.interpolate(
             x3_256, 
             size=x2.shape[2:], 
             mode='bilinear', 
             align_corners=False
-        )                                               # [B,256,H2,W2]
+        )                                             
 
-        # x3up = self.upconv3(x3up)                       # [B,256,H2,W2]
+        # x3up = self.upconv3(x3up)                     
 
-        xm = x3up + x2                                  # [B,256,H2,W2]
+        xm = x3up + x2                              
 
-        x_m128 = self.c128(xm)                          # [B,128,H2,W2]
+        x_m128 = self.c128(xm)                       
         x_mup = F.interpolate(
             x_m128, 
             size=x1.shape[2:], 
             mode='bilinear', 
             align_corners=False
-        )                                               # [B,128,H1,W1]
-        # x_mup = self.upconv2(x_mup)                     # [B,128,H1,W1]
-        out = x_mup + x1                                # [B,128,H1,W1]
+        )
+        # x_mup = self.upconv2(x_mup)                  
+        out = x_mup + x1                            
 
-        y = self.res1(out)                              # [B,1,H1,W1]
+        y = self.res1(out)                            
         return y
 
     
@@ -190,7 +190,7 @@ class UnifiedAttention(nn.Module):
             out_opp   = w_neg * Pi_n.unsqueeze(-1) * attn_opp
 
             g   = torch.sigmoid(self.gate)
-            out = g * out_sim + (1 - g) * out_opp                      # [B,H,N,D]
+            out = g * out_sim + (1 - g) * out_opp               
             out = rearrange(out, 'b h n d -> b n (h d)')
             return self.to_out(out)
 
@@ -476,7 +476,7 @@ class PosCNN(nn.Module):
         # feat_token_y = y
         cnn_feat = feat_token.transpose(1, 2).view(B, C, H, W)    #torch.Size([1, 128, 4096])    [torch.Size([1, 128, 64, 64])]
         if self.s == 1: 
-            x = self.proj(cnn_feat) + cnn_feat       #对图像特征进行投影，并与图像特征 cnn_feat 相加
+            x = self.proj(cnn_feat) + cnn_feat      
             # y = self.proj(feat_token_y) + feat_token_y
         x = x.flatten(2).transpose(1, 2)     #torch.Size([1, 4096, 128])
         # y = y.flatten(2).transpose(1, 2)
